@@ -7,10 +7,18 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependency directories
 node_modules
 dist
 dist-ssr
 *.local
+
+# Env files
+.env
+.env.*.local
+
+# Tailwind artifacts
+.tailwind-output.css
 
 # Editor directories and files
 .vscode/*
