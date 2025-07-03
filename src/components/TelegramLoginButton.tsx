@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
 
-// Define expected Telegram user type
 interface TelegramUser {
   id: number;
   first_name: string;
@@ -11,7 +10,6 @@ interface TelegramUser {
   hash: string;
 }
 
-// Declare global callback so Telegram widget can use it
 declare global {
   interface Window {
     handleTelegramLogin: (user: TelegramUser) => void;
@@ -20,43 +18,45 @@ declare global {
 
 const TelegramLoginButton: React.FC = () => {
   useEffect(() => {
-    // Define the callback function globally
+    // Define global auth callback for Telegram
     window.handleTelegramLogin = async (user: TelegramUser) => {
-      console.log("✅ Telegram user:", user);
+      console.log('✅ Telegram user:', user);
 
       try {
-        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/auth/telegram`, {
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/auth/telegram`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(user),
         });
 
         const data = await response.json();
-        if (data.token) {
+
+        if (response.ok && data.token) {
           localStorage.setItem('jwt_token', data.token);
           alert('✅ Logged in successfully!');
         } else {
-          alert('❌ Login failed. No token received.');
+          alert(`❌ Login failed: ${data.message || 'No token received'}`);
         }
-      } catch (err) {
-        console.error('❌ Error logging in:', err);
+      } catch (error) {
+        console.error('❌ Error during login:', error);
+        alert('❌ Login failed due to server error.');
       }
     };
 
-    // Inject the Telegram Login widget script
+    // Load Telegram login widget script dynamically
     const script = document.createElement('script');
     script.src = 'https://telegram.org/js/telegram-widget.js?7';
     script.async = true;
     script.setAttribute('data-telegram-login', import.meta.env.VITE_TELEGRAM_BOT_USERNAME || '');
     script.setAttribute('data-size', 'large');
     script.setAttribute('data-userpic', 'true');
-    script.setAttribute('data-radius', '10');
     script.setAttribute('data-request-access', 'write');
+    script.setAttribute('data-radius', '10');
     script.setAttribute('data-onauth', 'handleTelegramLogin');
 
     const container = document.getElementById('telegram-login-button');
     if (container) {
-      container.innerHTML = ''; // clear if already rendered
+      container.innerHTML = ''; // clear previous
       container.appendChild(script);
     }
 
